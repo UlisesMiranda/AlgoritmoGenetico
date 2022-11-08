@@ -3,8 +3,7 @@ from random import Random
 import random
 import string
 from typing import List
-
-from sqlalchemy import true
+import os
 
 class Individuo:
     
@@ -41,24 +40,28 @@ class Poblacion:
         self.padres = []
         self.hijos = []
 
+        #Realizamos un recorrido de 5 para obtener 2 individuos por iteracion
         for i in range(5):
             padresTemp = []
             hijosTemp = []
             randomCruza = random.uniform(0.0, 1.0)
             
+            #SELECCION
             if (self.metodoSeleccionPadres == "ruleta"):
-                padre1 = self.ruletaSeleccion();
-                padre2 = self.ruletaSeleccion()
+                padre1 = self.__ruletaSeleccion();
+                padre2 = self.__ruletaSeleccion()
                 
                 while(padre1 == padre2):
-                    padre2 = self.ruletaSeleccion()
+                    padre2 = self.__ruletaSeleccion()
                 
                 padresTemp.append(padre1)
                 padresTemp.append(padre2)
         
+            #CRUZA
             if randomCruza < self.probCruza:
                 hijosTemp = self.__cruzaPadres("uniforme", padresTemp[0], padresTemp[1])
                 
+                #MUTACION
                 hijosTemp[0] = self.__mutarHijo("inversion", hijosTemp[0])
                 hijosTemp[1] = self.__mutarHijo("inversion", hijosTemp[1])
                 
@@ -68,12 +71,13 @@ class Poblacion:
                 self.hijos.extend(hijosTemp)
                 
             if hijosTemp:
+                #REEMPLAZO
                 self.supervivientesFinales.extend(self.__reemplazoPadreDebil(padresTemp[0], padresTemp[1], hijosTemp[0], hijosTemp[1]))      
                 self.padres.extend(padresTemp)
                 self.hijos.extend(hijosTemp) 
    
     
-    def ruletaSeleccion(self):
+    def __ruletaSeleccion(self):
         
         sumaAptitudes = 0
         pSet = 0
@@ -106,15 +110,6 @@ class Poblacion:
             
             for i in range(len(padre1.cromosomaList)):
                 valAleatoriaList.append(random.randint(0, 1))
-            
-            '''
-            Cruza hijo1
-                0: toma gen de padre1
-                1: toma gen de padre2
-            Cruza hijo2
-                1: toma gen de padre1
-                0: toma gen de padre2
-            '''
 
             for i in range(len(padre1.cromosomaList)):
                 if valAleatoriaList[i] == 0:
@@ -190,6 +185,10 @@ def generarPoblacionAleatoria( tamanioCromo, cantidadPob):
 
 
 if __name__ == '__main__':
+    
+    if("Generaciones.txt" in os.listdir(".")):
+        os.remove("Generaciones.txt")
+    
     print("---BIENVENIDO A ALGORITMO GENETICO---\n")
     
     print("Generando poblacion Inicial")
@@ -206,6 +205,7 @@ if __name__ == '__main__':
     
     print("\n---Inicia algoritmo--\n")
     
+    #REALIZAMOS UN RECORRIDO DE 10 GENERACIONES
     for i in range (2, 11):
         generacion = Poblacion(superviv, 0.85, 0.1)
         file.write("\n" + str(i) + "° gen: "+ str(generacion.individuosList))
